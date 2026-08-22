@@ -3,13 +3,80 @@ import Layout from "../layouts/Layout.astro";
 ---
 
 <Layout
-  title="COMP4020 prototype"
-  description="Replace this with one sentence saying what this page is. A search result and a link preview both show it."
+  title="Wind chimes"
+  description="An instrument played with wind: move, drag, or use arrow keys to stir the chimes; click, tap, or press space for a gust."
 >
-  <h1>COMP4020 prototype</h1>
-  <p data-testid="intro">
-    Replace this with your prototype. This week's brief is on the course
-    website; <code>spec/README.md</code> explains how the checks in this repo
-    relate to it.
-  </p>
+  <h1>Wind chimes</h1>
+  <div
+    id="chime-scene"
+    tabindex="0"
+    role="img"
+    aria-label="A row of hanging wind chimes. Move the pointer, drag with a finger, or hold an arrow key to raise the wind. Click, tap, or press space for a gust."
+  >
+    <svg id="chime-svg" viewBox="0 0 640 440" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <linearGradient id="sky-gradient" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#8fcfe8" />
+          <stop offset="100%" stop-color="#eaf6ff" />
+        </linearGradient>
+        <linearGradient id="grass-gradient" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#8bc34a" />
+          <stop offset="100%" stop-color="#5a9c34" />
+        </linearGradient>
+        <linearGradient id="tube-gradient" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#7a5c46" />
+          <stop offset="30%" stop-color="#d9c4a1" />
+          <stop offset="55%" stop-color="#fff6e0" />
+          <stop offset="75%" stop-color="#d9c4a1" />
+          <stop offset="100%" stop-color="#7a5c46" />
+        </linearGradient>
+        <radialGradient id="sun-glow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#fff6c8" stop-opacity="0.9" />
+          <stop offset="100%" stop-color="#ffe27a" stop-opacity="0" />
+        </radialGradient>
+      </defs>
+
+      <rect x="0" y="0" width="640" height="440" fill="url(#sky-gradient)" />
+      <circle cx="560" cy="75" r="75" fill="url(#sun-glow)" />
+      <circle cx="560" cy="75" r="24" fill="#ffe27a" />
+
+      <ellipse cx="90" cy="345" rx="230" ry="75" fill="#a9d18e" />
+      <ellipse cx="500" cy="360" rx="270" ry="85" fill="#8bc34a" />
+
+      <rect x="0" y="345" width="640" height="95" fill="url(#grass-gradient)" />
+      <g fill="#ff8fa3">
+        <circle cx="55" cy="380" r="4" />
+        <circle cx="78" cy="392" r="4" />
+        <circle cx="590" cy="385" r="4" />
+        <circle cx="120" cy="400" r="4" />
+      </g>
+      <g fill="#fff8b0">
+        <circle cx="55" cy="380" r="1.6" />
+        <circle cx="78" cy="392" r="1.6" />
+        <circle cx="590" cy="385" r="1.6" />
+        <circle cx="120" cy="400" r="1.6" />
+      </g>
+
+      <path
+        d="M -10 58 Q 320 42 650 58"
+        stroke="#6b4a33"
+        stroke-width="14"
+        fill="none"
+        stroke-linecap="round"
+      />
+
+      <g id="chime-rig"></g>
+    </svg>
+  </div>
+  <p class="hint">move · drag · arrow keys — click · tap · space for a gust</p>
 </Layout>
+
+<script>
+  import { initWindChimes } from "../scripts/windchimes";
+
+  const scene = document.getElementById("chime-scene");
+  const svg = document.getElementById("chime-svg");
+  if (scene && svg instanceof SVGSVGElement) {
+    initWindChimes(scene, svg);
+  }
+</script>

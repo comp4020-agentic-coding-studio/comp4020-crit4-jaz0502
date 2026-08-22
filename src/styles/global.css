@@ -14,3 +14,29 @@ main {
 a {
   color: #0b5fff;
 }
+
+#chime-scene {
+  display: block;
+  width: 100%;
+  max-width: 640px;
+  margin: 2rem auto;
+  color: #4a3728;
+  cursor: grab;
+}
+
+#chime-scene:focus-visible {
+  outline: 3px solid #0b5fff;
+  outline-offset: 4px;
+}
+
+#chime-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.hint {
+  text-align: center;
+  color: #666;
+  font-size: 0.9rem;
+}

@@ -15,8 +15,6 @@ function files(dir: string = DIST): string[] {
 }
 
 const shipped = files().map((path) => relative(DIST, path).split(sep).join("/"));
-const scripts = shipped.filter((name) => name.endsWith(".js"));
-const scriptSource = scripts.map((name) => readFileSync(join(DIST, name), "utf8")).join("\n");
 
 const pages = shipped
   .filter((name) => name.endsWith(".html"))
@@ -24,6 +22,16 @@ const pages = shipped
     name,
     doc: new JSDOM(readFileSync(join(DIST, name), "utf8")).window.document,
   }));
+
+// A small single-page build often gets its script inlined into the HTML
+// rather than split into its own .js file, so JS can live in either place.
+const externalScripts = shipped
+  .filter((name) => name.endsWith(".js"))
+  .map((name) => readFileSync(join(DIST, name), "utf8"));
+const inlineScripts = pages.flatMap(({ doc }) =>
+  Array.from(doc.querySelectorAll("script:not([src])")).map((el) => el.textContent ?? ""),
+);
+const scriptSource = [...externalScripts, ...inlineScripts].join("\n");
 
 describe("crit 4: an instrument", () => {
   it("makes sound live via the Web Audio API, not by playing a file", () => {
