@@ -12,6 +12,14 @@ const STRIKE_THRESHOLD = 0.16; // radians from rest before a chime "strikes"
 const REARM_THRESHOLD = STRIKE_THRESHOLD * 0.4;
 const GUST_IMPULSE = 11;
 const IDLE_MS = 400; // no input for this long and wind starts decaying
+const MAX_WIND = 12;
+
+// The branch dips gently toward the middle — chimes hang a fixed gap below
+// wherever it passes overhead, so this mirrors the path drawn in index.astro.
+function branchY(x: number): number {
+  const t = (x - 320) / 320;
+  return 52 + 8 * t * t;
+}
 
 interface Chime {
   pivotX: number;
@@ -32,8 +40,15 @@ interface WindState {
   lastInputAt: number;
 }
 
+interface Foliage {
+  el: SVGGElement;
+  pivotX: number;
+  pivotY: number;
+  angle: number;
+  coupling: number; // heavier/lighter clumps sway by different amounts
+}
+
 export function initWindChimes(scene: HTMLElement, svg: SVGSVGElement): void {
-  const width = 640;
   const rigQuery = svg.querySelector<SVGGElement>("#chime-rig");
   if (!rigQuery) return;
   const rig = rigQuery;
@@ -42,14 +57,15 @@ export function initWindChimes(scene: HTMLElement, svg: SVGSVGElement): void {
 
   function makeTubeGroup(pivotX: number, pivotY: number, stringLen: number, tubeLen: number, tubeWidth: number) {
     const g = document.createElementNS(SVG_NS, "g");
+    g.setAttribute("filter", "url(#soft-shadow)");
 
     const string = document.createElementNS(SVG_NS, "line");
     string.setAttribute("x1", String(pivotX));
     string.setAttribute("y1", String(pivotY));
     string.setAttribute("x2", String(pivotX));
     string.setAttribute("y2", String(pivotY + stringLen));
-    string.setAttribute("stroke", "#4a3728");
-    string.setAttribute("stroke-width", "1.5");
+    string.setAttribute("stroke", "#3d3b34");
+    string.setAttribute("stroke-width", "1");
     g.appendChild(string);
 
     const tubeTop = pivotY + stringLen;
@@ -60,16 +76,27 @@ export function initWindChimes(scene: HTMLElement, svg: SVGSVGElement): void {
     tube.setAttribute("height", String(tubeLen));
     tube.setAttribute("rx", String(tubeWidth / 2));
     tube.setAttribute("fill", "url(#tube-gradient)");
-    tube.setAttribute("stroke", "#6b4a33");
-    tube.setAttribute("stroke-width", "0.5");
     g.appendChild(tube);
+
+    // A vertical glint layered over the tube's cylindrical shading, fading
+    // out down the length — this is what reads as light catching real metal
+    // rather than a flat, uniform gradient.
+    const glint = document.createElementNS(SVG_NS, "rect");
+    glint.setAttribute("x", String(pivotX - tubeWidth * 0.18));
+    glint.setAttribute("y", String(tubeTop + 1));
+    glint.setAttribute("width", String(tubeWidth * 0.22));
+    glint.setAttribute("height", String(tubeLen - 2));
+    glint.setAttribute("rx", String(tubeWidth * 0.11));
+    glint.setAttribute("fill", "url(#tube-highlight-gradient)");
+    glint.setAttribute("style", "mix-blend-mode: screen");
+    g.appendChild(glint);
 
     for (const cy of [tubeTop, tubeTop + tubeLen]) {
       const cap = document.createElementNS(SVG_NS, "circle");
       cap.setAttribute("cx", String(pivotX));
       cap.setAttribute("cy", String(cy));
-      cap.setAttribute("r", String(tubeWidth / 2 + 1));
-      cap.setAttribute("fill", "#6b4a33");
+      cap.setAttribute("r", String(tubeWidth / 2 + 0.75));
+      cap.setAttribute("fill", "url(#wood-gradient)");
       g.appendChild(cap);
     }
 
@@ -78,12 +105,12 @@ export function initWindChimes(scene: HTMLElement, svg: SVGSVGElement): void {
   }
 
   for (let i = 0; i < CHIME_COUNT; i++) {
-    const pivotX = 60 + (i / (CHIME_COUNT - 1)) * (width - 120);
-    const pivotY = 66;
-    const stringLen = 18 + (i % 3) * 8;
-    const tubeLen = 120 + ((i * 37) % 60);
+    const pivotX = 60 + (i / (CHIME_COUNT - 1)) * (640 - 120);
+    const pivotY = branchY(pivotX) + 8;
+    const stringLen = 16 + (i % 3) * 7;
+    const tubeLen = 118 + ((i * 37) % 58);
 
-    const el = makeTubeGroup(pivotX, pivotY, stringLen, tubeLen, 12);
+    const el = makeTubeGroup(pivotX, pivotY, stringLen, tubeLen, 8);
 
     chimes.push({
       pivotX,
@@ -101,29 +128,37 @@ export function initWindChimes(scene: HTMLElement, svg: SVGSVGElement): void {
     });
   }
 
-  // A central wind-catcher disc: bigger, looser, and more visibly restless
-  // than the tubes, so the strength of the wind reads at a glance even before
-  // any chime strikes. It never makes sound on its own.
-  const catcherPivotX = width / 2;
-  const catcherPivotY = 66;
-  const catcherStringLen = 60;
+  // A central wind-catcher: bigger, looser, and more visibly restless than
+  // the tubes, so the strength of the wind reads at a glance even before any
+  // chime strikes. A small wooden disc rather than another metal tube — it
+  // never makes sound on its own.
+  const catcherPivotX = 320;
+  const catcherPivotY = branchY(catcherPivotX) + 8;
+  const catcherStringLen = 56;
   const catcherEl = document.createElementNS(SVG_NS, "g");
+  catcherEl.setAttribute("filter", "url(#soft-shadow)");
   const catcherString = document.createElementNS(SVG_NS, "line");
   catcherString.setAttribute("x1", String(catcherPivotX));
   catcherString.setAttribute("y1", String(catcherPivotY));
   catcherString.setAttribute("x2", String(catcherPivotX));
   catcherString.setAttribute("y2", String(catcherPivotY + catcherStringLen));
-  catcherString.setAttribute("stroke", "#4a3728");
-  catcherString.setAttribute("stroke-width", "1.5");
+  catcherString.setAttribute("stroke", "#3d3b34");
+  catcherString.setAttribute("stroke-width", "1");
   catcherEl.appendChild(catcherString);
   const disc = document.createElementNS(SVG_NS, "circle");
   disc.setAttribute("cx", String(catcherPivotX));
-  disc.setAttribute("cy", String(catcherPivotY + catcherStringLen + 14));
-  disc.setAttribute("r", "14");
-  disc.setAttribute("fill", "url(#tube-gradient)");
-  disc.setAttribute("stroke", "#6b4a33");
-  disc.setAttribute("stroke-width", "1");
+  disc.setAttribute("cy", String(catcherPivotY + catcherStringLen + 11));
+  disc.setAttribute("r", "11");
+  disc.setAttribute("fill", "url(#orb-gradient)");
   catcherEl.appendChild(disc);
+  const orbGlint = document.createElementNS(SVG_NS, "ellipse");
+  orbGlint.setAttribute("cx", String(catcherPivotX - 3.2));
+  orbGlint.setAttribute("cy", String(catcherPivotY + catcherStringLen + 11 - 4.5));
+  orbGlint.setAttribute("rx", "3");
+  orbGlint.setAttribute("ry", "1.8");
+  orbGlint.setAttribute("fill", "#fff8df");
+  orbGlint.setAttribute("opacity", "0.6");
+  catcherEl.appendChild(orbGlint);
   rig.appendChild(catcherEl);
   chimes.push({
     pivotX: catcherPivotX,
@@ -137,6 +172,16 @@ export function initWindChimes(scene: HTMLElement, svg: SVGSVGElement): void {
     silent: true,
     el: catcherEl,
   });
+
+  // The garden foliage sways too, more slowly and subtly than the delicate
+  // tubes — heavier mass, lazier response, so the same gust moves it less.
+  const foliage: Foliage[] = Array.from(svg.querySelectorAll<SVGGElement>("[data-pivot-x]")).map((el, i) => ({
+    el,
+    pivotX: Number(el.dataset.pivotX),
+    pivotY: Number(el.dataset.pivotY),
+    angle: 0,
+    coupling: 0.8 + (i % 2) * 0.35,
+  }));
 
   const wind: WindState = { strength: 0, direction: 1, lastInputAt: 0 };
 
@@ -187,7 +232,7 @@ export function initWindChimes(scene: HTMLElement, svg: SVGSVGElement): void {
 
   function addWind(dx: number, dt: number) {
     const speed = Math.abs(dx) / Math.max(dt, 1);
-    wind.strength = Math.min(12, wind.strength + speed * 1.1);
+    wind.strength = Math.min(MAX_WIND, wind.strength + speed * 1.1);
     wind.direction = Math.sign(dx) || wind.direction;
     wind.lastInputAt = performance.now();
   }
@@ -275,6 +320,17 @@ export function initWindChimes(scene: HTMLElement, svg: SVGSVGElement): void {
 
       const degrees = (chime.angle * 180) / Math.PI;
       chime.el.setAttribute("transform", `rotate(${degrees} ${chime.pivotX} ${chime.pivotY})`);
+    }
+
+    // Foliage is heavier than the tubes: it eases toward a wind-scaled lean
+    // instead of swinging on its own spring, so a gust reads as a slow,
+    // physical rustle rather than another chime.
+    const windFactor = Math.min(1, wind.strength / MAX_WIND);
+    const smoothing = 1 - Math.exp(-dt / 220);
+    for (const clump of foliage) {
+      const target = windFactor * 6 * wind.direction * clump.coupling;
+      clump.angle += (target - clump.angle) * smoothing;
+      clump.el.setAttribute("transform", `rotate(${clump.angle} ${clump.pivotX} ${clump.pivotY})`);
     }
 
     requestAnimationFrame(frame);

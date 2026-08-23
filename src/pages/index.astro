@@ -7,6 +7,7 @@ import Layout from "../layouts/Layout.astro";
   description="An instrument played with wind: move, drag, or use arrow keys to stir the chimes; click, tap, or press space for a gust."
 >
   <h1>Wind chimes</h1>
+  <p class="subtitle">Move to make the wind.</p>
   <div
     id="chime-scene"
     tabindex="0"
@@ -14,61 +15,273 @@ import Layout from "../layouts/Layout.astro";
     aria-label="A row of hanging wind chimes. Move the pointer, drag with a finger, or hold an arrow key to raise the wind. Click, tap, or press space for a gust."
   >
     <svg id="chime-svg" viewBox="0 0 640 440" preserveAspectRatio="xMidYMid meet">
+      <style>
+        .dust {
+          transform-box: fill-box;
+          transform-origin: center;
+          animation-name: dust-drift;
+          animation-timing-function: ease-in-out;
+          animation-iteration-count: infinite;
+        }
+        @keyframes dust-drift {
+          0%,
+          100% {
+            transform: translateY(0) scale(1);
+            opacity: 0.35;
+          }
+          50% {
+            transform: translateY(-12px) scale(1.2);
+            opacity: 0.85;
+          }
+        }
+      </style>
       <defs>
         <linearGradient id="sky-gradient" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#8fcfe8" />
-          <stop offset="100%" stop-color="#eaf6ff" />
+          <stop offset="0%" stop-color="#bfe3d6" />
+          <stop offset="45%" stop-color="#eaf3c9" />
+          <stop offset="100%" stop-color="#fff6da" />
         </linearGradient>
-        <linearGradient id="grass-gradient" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#8bc34a" />
-          <stop offset="100%" stop-color="#5a9c34" />
+        <linearGradient id="ground-gradient" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#a8c97a" />
+          <stop offset="55%" stop-color="#7fae54" />
+          <stop offset="100%" stop-color="#527a38" />
         </linearGradient>
         <linearGradient id="tube-gradient" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stop-color="#7a5c46" />
-          <stop offset="30%" stop-color="#d9c4a1" />
-          <stop offset="55%" stop-color="#fff6e0" />
-          <stop offset="75%" stop-color="#d9c4a1" />
-          <stop offset="100%" stop-color="#7a5c46" />
+          <stop offset="0%" stop-color="#54584a" />
+          <stop offset="16%" stop-color="#aeb3a0" />
+          <stop offset="38%" stop-color="#fefbee" />
+          <stop offset="53%" stop-color="#fefbee" />
+          <stop offset="70%" stop-color="#c7c2a4" />
+          <stop offset="88%" stop-color="#8b8f7c" />
+          <stop offset="100%" stop-color="#484c40" />
         </linearGradient>
-        <radialGradient id="sun-glow" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stop-color="#fff6c8" stop-opacity="0.9" />
-          <stop offset="100%" stop-color="#ffe27a" stop-opacity="0" />
+        <linearGradient id="tube-highlight-gradient" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#ffffff" stop-opacity="0.95" />
+          <stop offset="30%" stop-color="#ffffff" stop-opacity="0.3" />
+          <stop offset="65%" stop-color="#ffffff" stop-opacity="0.05" />
+          <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+        </linearGradient>
+        <linearGradient id="wood-gradient" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#8c8272" />
+          <stop offset="50%" stop-color="#685f50" />
+          <stop offset="100%" stop-color="#413a2e" />
+        </linearGradient>
+        <radialGradient id="orb-gradient" cx="35%" cy="30%" r="75%">
+          <stop offset="0%" stop-color="#c2b378" />
+          <stop offset="45%" stop-color="#8a7f4f" />
+          <stop offset="100%" stop-color="#4f4a2c" />
         </radialGradient>
+        <radialGradient id="sun-glow" cx="42%" cy="30%" r="60%">
+          <stop offset="0%" stop-color="#fffaea" stop-opacity="0.95" />
+          <stop offset="45%" stop-color="#fdf0b8" stop-opacity="0.45" />
+          <stop offset="100%" stop-color="#fdf0b8" stop-opacity="0" />
+        </radialGradient>
+        <radialGradient id="mist-glow" cx="46%" cy="55%" r="65%">
+          <stop offset="0%" stop-color="#fdfaef" stop-opacity="0.18" />
+          <stop offset="100%" stop-color="#fdfaef" stop-opacity="0" />
+        </radialGradient>
+        <radialGradient id="dust-glow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#fff8df" stop-opacity="0.95" />
+          <stop offset="100%" stop-color="#fff8df" stop-opacity="0" />
+        </radialGradient>
+        <radialGradient id="rock-gradient" cx="35%" cy="25%" r="75%">
+          <stop offset="0%" stop-color="#a19c8d" />
+          <stop offset="100%" stop-color="#5e594c" />
+        </radialGradient>
+        <linearGradient id="ray-gradient" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#fdf3d6" stop-opacity="0.5" />
+          <stop offset="100%" stop-color="#fdf3d6" stop-opacity="0" />
+        </linearGradient>
+        <path id="leaf-shape" d="M0,0 C -7,-11 -7,-25 0,-36 C 7,-25 7,-11 0,0 Z" />
+        <g id="flower-shape">
+          <g fill="#f8e6ea">
+            <ellipse cx="0" cy="-5.5" rx="3" ry="5" />
+            <ellipse cx="0" cy="-5.5" rx="3" ry="5" transform="rotate(72)" />
+            <ellipse cx="0" cy="-5.5" rx="3" ry="5" transform="rotate(144)" />
+            <ellipse cx="0" cy="-5.5" rx="3" ry="5" transform="rotate(216)" />
+            <ellipse cx="0" cy="-5.5" rx="3" ry="5" transform="rotate(288)" />
+          </g>
+          <circle r="2" fill="#f0b955" />
+        </g>
+        <g id="flower-coral">
+          <g fill="#f2896a">
+            <ellipse cx="0" cy="-4.5" rx="2.6" ry="4.2" />
+            <ellipse cx="0" cy="-4.5" rx="2.6" ry="4.2" transform="rotate(72)" />
+            <ellipse cx="0" cy="-4.5" rx="2.6" ry="4.2" transform="rotate(144)" />
+            <ellipse cx="0" cy="-4.5" rx="2.6" ry="4.2" transform="rotate(216)" />
+            <ellipse cx="0" cy="-4.5" rx="2.6" ry="4.2" transform="rotate(288)" />
+          </g>
+          <circle r="1.7" fill="#f7c94c" />
+        </g>
+        <g id="flower-lavender">
+          <g fill="#b39ee6">
+            <ellipse cx="0" cy="-4.5" rx="2.6" ry="4.2" />
+            <ellipse cx="0" cy="-4.5" rx="2.6" ry="4.2" transform="rotate(72)" />
+            <ellipse cx="0" cy="-4.5" rx="2.6" ry="4.2" transform="rotate(144)" />
+            <ellipse cx="0" cy="-4.5" rx="2.6" ry="4.2" transform="rotate(216)" />
+            <ellipse cx="0" cy="-4.5" rx="2.6" ry="4.2" transform="rotate(288)" />
+          </g>
+          <circle r="1.7" fill="#f7c94c" />
+        </g>
+        <g id="canopy-cluster">
+          <use href="#leaf-shape" fill="#4c7a34" transform="translate(-40,10) rotate(200) scale(1.6)" />
+          <use href="#leaf-shape" fill="#5f9440" transform="translate(-15,25) rotate(160) scale(1.9)" />
+          <use href="#leaf-shape" fill="#82b85a" transform="translate(10,15) rotate(190) scale(1.4)" />
+          <use href="#leaf-shape" fill="#6ea24a" transform="translate(-30,45) rotate(150) scale(1.7)" />
+          <use href="#leaf-shape" fill="#95c66c" transform="translate(20,40) rotate(210) scale(1.5)" />
+          <use href="#leaf-shape" fill="#4c7a34" transform="translate(0,60) rotate(175) scale(1.8)" />
+          <use href="#leaf-shape" fill="#a6d47e" transform="translate(-45,55) rotate(140) scale(1.3)" />
+          <use href="#leaf-shape" fill="#5f9440" transform="translate(35,60) rotate(220) scale(1.6)" />
+          <use href="#leaf-shape" fill="#82b85a" transform="translate(-10,75) rotate(165) scale(1.4)" />
+          <use href="#leaf-shape" fill="#6ea24a" transform="translate(15,80) rotate(195) scale(1.2)" />
+          <use href="#flower-shape" transform="translate(-35,20) scale(0.9)" />
+          <use href="#flower-shape" transform="translate(25,35) scale(0.7)" />
+        </g>
+        <g id="bloom-sprig-coral">
+          <path d="M0,0 C -2,-14 2,-30 -1,-46" stroke="#5c5546" stroke-width="1.3" fill="none" stroke-linecap="round" opacity="0.7" />
+          <use href="#leaf-shape" fill="#5f9440" transform="translate(-1,-9) rotate(-38) scale(0.85)" />
+          <use href="#leaf-shape" fill="#82b85a" transform="translate(2,-17) rotate(30) scale(0.9)" />
+          <use href="#leaf-shape" fill="#4c7a34" transform="translate(-3,-25) rotate(-52) scale(0.8)" />
+          <use href="#flower-coral" transform="translate(-6,-20) scale(1.1)" />
+          <use href="#flower-coral" transform="translate(4,-30) scale(0.9)" />
+          <use href="#flower-coral" transform="translate(-4,-40) scale(1)" />
+          <use href="#flower-coral" transform="translate(5,-45) scale(0.75)" />
+        </g>
+        <g id="bloom-sprig-lavender">
+          <path d="M0,0 C -2,-14 2,-30 -1,-46" stroke="#5c5546" stroke-width="1.3" fill="none" stroke-linecap="round" opacity="0.7" />
+          <use href="#leaf-shape" fill="#5f9440" transform="translate(-1,-9) rotate(-38) scale(0.85)" />
+          <use href="#leaf-shape" fill="#82b85a" transform="translate(2,-17) rotate(30) scale(0.9)" />
+          <use href="#leaf-shape" fill="#4c7a34" transform="translate(-3,-25) rotate(-52) scale(0.8)" />
+          <use href="#flower-lavender" transform="translate(-6,-20) scale(1.1)" />
+          <use href="#flower-lavender" transform="translate(4,-30) scale(0.9)" />
+          <use href="#flower-lavender" transform="translate(-4,-40) scale(1)" />
+          <use href="#flower-lavender" transform="translate(5,-45) scale(0.75)" />
+        </g>
+        <filter id="blur-far" x="-40%" y="-40%" width="180%" height="180%">
+          <feGaussianBlur stdDeviation="6" />
+        </filter>
+        <filter id="blur-near" x="-40%" y="-40%" width="180%" height="180%">
+          <feGaussianBlur stdDeviation="1.2" />
+        </filter>
+        <filter id="blur-bokeh" x="-60%" y="-60%" width="220%" height="220%">
+          <feGaussianBlur stdDeviation="9" />
+        </filter>
+        <filter id="soft-shadow" x="-60%" y="-60%" width="220%" height="220%">
+          <feDropShadow dx="1.5" dy="3" stdDeviation="2.2" flood-color="#2c281c" flood-opacity="0.25" />
+        </filter>
       </defs>
 
       <rect x="0" y="0" width="640" height="440" fill="url(#sky-gradient)" />
-      <circle cx="560" cy="75" r="75" fill="url(#sun-glow)" />
-      <circle cx="560" cy="75" r="24" fill="#ffe27a" />
+      <rect x="0" y="0" width="640" height="440" fill="url(#sun-glow)" style="mix-blend-mode: screen" />
 
-      <ellipse cx="90" cy="345" rx="230" ry="75" fill="#a9d18e" />
-      <ellipse cx="500" cy="360" rx="270" ry="85" fill="#8bc34a" />
-
-      <rect x="0" y="345" width="640" height="95" fill="url(#grass-gradient)" />
-      <g fill="#ff8fa3">
-        <circle cx="55" cy="380" r="4" />
-        <circle cx="78" cy="392" r="4" />
-        <circle cx="590" cy="385" r="4" />
-        <circle cx="120" cy="400" r="4" />
+      <g opacity="0.4" filter="url(#blur-far)">
+        <use href="#canopy-cluster" fill="#5a7a44" transform="translate(70,260) scale(2.6)" />
+        <use href="#canopy-cluster" fill="#4f6b3f" transform="translate(560,250) scale(2.2) scale(-1,1)" />
       </g>
-      <g fill="#fff8b0">
-        <circle cx="55" cy="380" r="1.6" />
-        <circle cx="78" cy="392" r="1.6" />
-        <circle cx="590" cy="385" r="1.6" />
-        <circle cx="120" cy="400" r="1.6" />
+
+      <rect x="0" y="0" width="640" height="440" fill="url(#mist-glow)" />
+
+      <g opacity="0.55" style="mix-blend-mode: screen" filter="url(#blur-far)">
+        <polygon points="0,0 46,0 4,340 -42,340" fill="url(#ray-gradient)" transform="translate(150,-30) rotate(12)" />
+        <polygon points="0,0 34,0 -4,300 -38,300" fill="url(#ray-gradient)" transform="translate(360,-20) rotate(-8)" opacity="0.8" />
+      </g>
+
+      <ellipse cx="330" cy="392" rx="58" ry="28" fill="url(#rock-gradient)" filter="url(#blur-near)" opacity="0.6" />
+      <path
+        d="M 290 386 C 278 402, 262 420, 244 440 L 408 440 C 390 420, 376 402, 366 386 Z"
+        fill="#d8cdb4"
+        opacity="0.3"
+        filter="url(#blur-near)"
+      />
+
+      <path
+        d="M 0 322 C 70 306, 140 318, 210 305
+           C 290 292, 360 312, 440 300
+           C 510 290, 580 304, 640 294
+           L 640 440 L 0 440 Z"
+        fill="url(#ground-gradient)"
+      />
+
+      <g class="dust" fill="url(#dust-glow)" style="animation-duration: 5.5s">
+        <circle cx="120" cy="360" r="2.4" />
+      </g>
+      <g class="dust" fill="url(#dust-glow)" style="animation-duration: 7s; animation-delay: -1.5s">
+        <circle cx="500" cy="340" r="2" />
+      </g>
+      <g class="dust" fill="url(#dust-glow)" style="animation-duration: 6.2s; animation-delay: -3s">
+        <circle cx="330" cy="200" r="1.8" />
+      </g>
+      <g class="dust" fill="url(#dust-glow)" style="animation-duration: 8s; animation-delay: -2.2s">
+        <circle cx="200" cy="250" r="2.3" />
+      </g>
+      <g class="dust" fill="url(#dust-glow)" style="animation-duration: 6.8s; animation-delay: -4s">
+        <circle cx="440" cy="270" r="1.6" />
+      </g>
+      <g class="dust" fill="url(#dust-glow)" style="animation-duration: 7.6s; animation-delay: -0.8s">
+        <circle cx="70" cy="300" r="2.1" />
+      </g>
+      <g class="dust" fill="url(#dust-glow)" style="animation-duration: 5.8s; animation-delay: -5s">
+        <circle cx="560" cy="360" r="1.9" />
+      </g>
+
+      <g opacity="0.85" filter="url(#blur-near)">
+        <use href="#canopy-cluster" fill="#4f6b3f" transform="translate(50,-15) scale(1.9)" />
+        <use href="#canopy-cluster" fill="#5a7a44" transform="translate(580,-25) scale(1.6) scale(-1,1)" />
+      </g>
+
+      <g id="foliage-a" data-pivot-x="46" data-pivot-y="428" transform="rotate(0 46 428)">
+        <g transform="translate(46,428)">
+          <use href="#bloom-sprig-coral" transform="scale(1.3) rotate(-8)" />
+          <use href="#bloom-sprig-coral" transform="scale(1.05) rotate(14) translate(15,3)" />
+          <use href="#bloom-sprig-coral" transform="scale(0.85) rotate(-28) translate(-9,4)" />
+        </g>
+      </g>
+      <g id="foliage-b" data-pivot-x="596" data-pivot-y="430" transform="rotate(0 596 430)">
+        <g transform="translate(596,430) scale(-1,1)">
+          <use href="#bloom-sprig-lavender" transform="scale(1.35) rotate(-6)" />
+          <use href="#bloom-sprig-lavender" transform="scale(1.05) rotate(16) translate(14,3)" />
+          <use href="#bloom-sprig-lavender" transform="scale(0.85) rotate(-26) translate(-9,4)" />
+        </g>
+      </g>
+
+      <g opacity="0.28" filter="url(#blur-bokeh)">
+        <circle cx="20" cy="400" r="46" fill="#fff0b8" />
+        <circle cx="618" cy="410" r="40" fill="#fff0b8" />
       </g>
 
       <path
-        d="M -10 58 Q 320 42 650 58"
-        stroke="#6b4a33"
-        stroke-width="14"
+        d="M -10 60 C 90 40, 180 52, 320 46 C 460 40, 550 50, 650 58"
+        stroke="url(#wood-gradient)"
+        stroke-width="10"
         fill="none"
         stroke-linecap="round"
+        filter="url(#soft-shadow)"
+      />
+      <path
+        d="M -10 57 C 90 37, 180 49, 320 43 C 460 37, 550 47, 650 55"
+        stroke="#e8dcb6"
+        stroke-width="1"
+        fill="none"
+        opacity="0.4"
+      />
+      <path
+        d="M -10 60 C 90 40, 180 52, 320 46 C 460 40, 550 50, 650 58"
+        stroke="#241f14"
+        stroke-width="0.6"
+        fill="none"
+        opacity="0.25"
       />
 
       <g id="chime-rig"></g>
+
+      <g filter="url(#soft-shadow)">
+        <use href="#canopy-cluster" fill="#3f5a30" transform="translate(30,-25) scale(1.3)" />
+        <use href="#flower-shape" transform="translate(15,-30) scale(1.1)" />
+        <use href="#flower-shape" transform="translate(45,-15) scale(0.9)" />
+      </g>
     </svg>
   </div>
-  <p class="hint">move · drag · arrow keys — click · tap · space for a gust</p>
+  <p class="hint">click, tap, or space for a gust</p>
 </Layout>
 
 <script>
