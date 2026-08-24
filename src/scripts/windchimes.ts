@@ -2,8 +2,10 @@ const SVG_NS = "http://www.w3.org/2000/svg";
 
 const CHIME_COUNT = 9;
 // A pentatonic scale so any combination of chimes striking together stays
-// consonant — there's no wrong note to hit, only louder or softer ones.
-const PENTATONIC = [261.63, 293.66, 329.63, 392.0, 440.0, 523.25, 587.33, 659.25];
+// consonant — there's no wrong note to hit, only louder or softer ones. Pitched
+// an octave up from a plain C major pentatonic (523–1319 Hz) for a bright,
+// glassy register rather than a low, heavy one.
+const PENTATONIC = [523.25, 587.33, 659.25, 784.0, 880.0, 1046.5, 1174.66, 1318.51];
 
 // How much of the wind's strength turns into torque on each chime. Tuned so a
 // single mouse click's gust is enough to swing a chime past STRIKE_THRESHOLD.
@@ -210,16 +212,18 @@ export function initWindChimes(scene: HTMLElement, svg: SVGSVGElement): void {
     const loudness = Math.min(1, Math.abs(velocity) / 2.5);
 
     // A fundamental plus two inharmonic partials is what reads as "bell/chime"
-    // rather than a plain sine beep.
+    // rather than a plain sine beep. Shorter decays than a low bell would use —
+    // that quick fade is what makes a bright, light strike read as delicate
+    // rather than a heavy, sustained bong.
     const partials = [1, 2.4, 3.8];
-    const decays = [1.1, 0.6, 0.35];
+    const decays = [0.75, 0.4, 0.22];
     partials.forEach((ratio, idx) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.type = "sine";
       osc.frequency.value = chime.frequency * ratio;
 
-      const peak = loudness * (idx === 0 ? 0.35 : 0.14);
+      const peak = loudness * (idx === 0 ? 0.3 : 0.13);
       gain.gain.setValueAtTime(0, now);
       gain.gain.linearRampToValueAtTime(peak, now + 0.005);
       gain.gain.exponentialRampToValueAtTime(0.0001, now + decays[idx]);
@@ -301,8 +305,20 @@ export function initWindChimes(scene: HTMLElement, svg: SVGSVGElement): void {
       wind.strength = Math.max(0, wind.strength - dt * 0.008);
     }
 
+    // The chimes and foliage lean away from the side the wind is coming
+    // from — e.g. the pointer moving right reads as wind arriving from the
+    // right, so everything swings left — hence the sign flip here rather
+    // than in wind.direction itself, which stays the raw input reading.
+    const windPush = -wind.direction;
+
     for (const chime of chimes) {
-      const force = wind.strength * wind.direction * FORCE_SCALE * (chime.silent ? 1.6 : 1);
+      const rawForce = wind.strength * windPush * FORCE_SCALE * (chime.silent ? 1.6 : 1);
+      // Capped relative to this chime's own stiffness so wind can never fully
+      // overpower the spring — without this, a strong sustained push has no
+      // stable resting angle and the tube swings past horizontal instead of
+      // settling into a bounded lean.
+      const maxForce = chime.stiffness * 0.6;
+      const force = Math.max(-maxForce, Math.min(maxForce, rawForce));
       const accel =
         -chime.stiffness * Math.sin(chime.angle) - chime.damping * chime.angularVelocity + force;
       chime.angularVelocity += accel * (dt / 1000);
@@ -328,7 +344,7 @@ export function initWindChimes(scene: HTMLElement, svg: SVGSVGElement): void {
     const windFactor = Math.min(1, wind.strength / MAX_WIND);
     const smoothing = 1 - Math.exp(-dt / 220);
     for (const clump of foliage) {
-      const target = windFactor * 6 * wind.direction * clump.coupling;
+      const target = windFactor * 6 * windPush * clump.coupling;
       clump.angle += (target - clump.angle) * smoothing;
       clump.el.setAttribute("transform", `rotate(${clump.angle} ${clump.pivotX} ${clump.pivotY})`);
     }
