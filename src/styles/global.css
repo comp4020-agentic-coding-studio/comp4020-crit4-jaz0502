@@ -3,19 +3,27 @@ html {
 }
 
 body {
+  position: relative;
   margin: 0;
-  padding: 1.5rem 2rem 2rem;
+  height: 100%;
+  overflow: hidden;
   font-family: system-ui, sans-serif;
   line-height: 1.6;
   color: #1a1a1a;
-  background: #f3f8e8;
-  overflow-x: hidden;
-  min-height: 100%;
+
+  /* Matches the sky-gradient's top stop, so any letterboxed edge on a tall
+     screen blends into the scene instead of showing a mismatched flat bar. */
+  background: #bfe3d6;
 }
 
 main {
-  max-width: none;
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
   margin: 0;
+  max-width: none;
+  overflow: hidden;
   text-align: center;
 }
 
@@ -23,89 +31,89 @@ a {
   color: #0b5fff;
 }
 
+header {
+  position: absolute;
+  top: 0.6rem;
+  left: 0.9rem;
+  z-index: 2;
+}
+
+header nav a {
+  font-size: 0.75rem;
+  color: #3d3222;
+  text-decoration: none;
+  opacity: 0.6;
+  mix-blend-mode: multiply;
+}
+
+header nav a:hover,
+header nav a:focus-visible {
+  opacity: 1;
+}
+
+.title-overlay {
+  position: absolute;
+  top: 6%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1;
+  pointer-events: none;
+}
+
 h1 {
   margin: 0 0 0.15rem;
-  font-size: clamp(1.5rem, 4vw, 2.5rem);
+  font-size: clamp(1.6rem, 5vw, 3.25rem);
   font-weight: 300;
   text-transform: uppercase;
   letter-spacing: 0.5em;
   padding-left: 0.5em; /* balances the trailing tracked space after the last letter */
-  color: #46422f;
+  color: #3d3222;
+
+  /* Multiplied into the sky behind it rather than sitting on top as a flat
+     label — the text reads as part of the light, not a caption over it. */
+  mix-blend-mode: multiply;
+  text-shadow: 0 2px 20px rgb(255 251 235 / 50%);
 }
 
 .subtitle {
   margin: 0;
   font-size: 0.8rem;
-  color: #6b6a55;
+  color: #3d3222;
   font-style: italic;
+  opacity: 0.75;
+  mix-blend-mode: multiply;
 }
 
 #chime-scene {
-  display: block;
-  width: 100vw;
-  max-width: 100vw;
-  margin: 1.25rem calc(50% - 50vw) 1.5rem;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   color: #4a3728;
   cursor: grab;
 }
 
 #chime-scene:focus-visible {
   outline: 3px solid #0b5fff;
-  outline-offset: 4px;
+  outline-offset: -4px;
 }
 
 #chime-svg {
   display: block;
   width: 100%;
-  height: auto;
+  height: 100%;
 }
 
 .hint {
-  text-align: center;
-  color: #666;
-  font-size: 0.9rem;
-}
-
-/* Laptop and wider: fit the whole page in the viewport height, no scroll. */
-@media (width >= 800px) and (height >= 500px) {
-  html,
-  body {
-    height: 100%;
-  }
-
-  body {
-    display: flex;
-    flex-direction: column;
-    padding: 1rem 2rem;
-    box-sizing: border-box;
-    overflow: hidden;
-  }
-
-  header {
-    flex: 0 0 auto;
-  }
-
-  main {
-    flex: 1 1 auto;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-  }
-
-  h1,
-  .subtitle,
-  .hint {
-    flex: 0 0 auto;
-  }
-
-  #chime-scene {
-    flex: 1 1 auto;
-    min-height: 0;
-    margin: 1rem calc(50% - 50vw);
-  }
-
-  #chime-svg {
-    width: 100%;
-    height: 100%;
-  }
+  position: absolute;
+  bottom: 3%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1;
+  margin: 0;
+  color: #3d3222;
+  font-size: 0.85rem;
+  opacity: 0.7;
+  mix-blend-mode: multiply;
+  pointer-events: none;
 }

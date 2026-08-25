@@ -6,15 +6,17 @@ import Layout from "../layouts/Layout.astro";
   title="Wind chimes"
   description="An instrument played with wind: move, drag, or use arrow keys to stir the chimes; click, tap, or press space for a gust."
 >
-  <h1>Wind chimes</h1>
-  <p class="subtitle">Move to make the wind.</p>
+  <div class="title-overlay">
+    <h1>Wind chimes</h1>
+    <p class="subtitle">Move to make the wind.</p>
+  </div>
   <div
     id="chime-scene"
     tabindex="0"
     role="img"
     aria-label="A row of hanging wind chimes. Move the pointer, drag with a finger, or hold an arrow key to raise the wind. Click, tap, or press space for a gust."
   >
-    <svg id="chime-svg" viewBox="0 0 640 440" preserveAspectRatio="xMidYMid meet">
+    <svg id="chime-svg" viewBox="0 0 640 620" preserveAspectRatio="xMidYMid meet">
       <style>
         .dust {
           transform-box: fill-box;
@@ -171,9 +173,10 @@ import Layout from "../layouts/Layout.astro";
         </filter>
       </defs>
 
-      <rect x="0" y="0" width="640" height="440" fill="url(#sky-gradient)" />
-      <rect x="0" y="0" width="640" height="440" fill="url(#sun-glow)" style="mix-blend-mode: screen" />
+      <rect x="0" y="0" width="640" height="620" fill="url(#sky-gradient)" />
+      <rect x="0" y="0" width="640" height="620" fill="url(#sun-glow)" style="mix-blend-mode: screen" />
 
+      <g transform="translate(0, 180)">
       <g opacity="0.4" filter="url(#blur-far)">
         <use href="#canopy-cluster" fill="#5a7a44" transform="translate(70,260) scale(2.6)" />
         <use href="#canopy-cluster" fill="#4f6b3f" transform="translate(560,250) scale(2.2) scale(-1,1)" />
@@ -279,6 +282,7 @@ import Layout from "../layouts/Layout.astro";
         <use href="#flower-shape" transform="translate(15,-30) scale(1.1)" />
         <use href="#flower-shape" transform="translate(45,-15) scale(0.9)" />
       </g>
+      </g>
     </svg>
   </div>
   <p class="hint">click, tap, or space for a gust</p>
@@ -291,5 +295,16 @@ import Layout from "../layouts/Layout.astro";
   const svg = document.getElementById("chime-svg");
   if (scene && svg instanceof SVGSVGElement) {
     initWindChimes(scene, svg);
+
+    // On a landscape screen the scene can crop to fill it edge-to-edge; on a
+    // tall, narrow one (a phone held upright) the same crop would zoom in
+    // until only the middle couple of chimes were visible, so it stays
+    // letterboxed and fully visible instead.
+    const landscape = window.matchMedia("(orientation: landscape)");
+    const updateAspectMode = () => {
+      svg.setAttribute("preserveAspectRatio", landscape.matches ? "xMidYMid slice" : "xMidYMid meet");
+    };
+    updateAspectMode();
+    landscape.addEventListener("change", updateAspectMode);
   }
 </script>
