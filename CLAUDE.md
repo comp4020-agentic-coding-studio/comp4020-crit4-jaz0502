@@ -22,9 +22,11 @@ relate to it.
 - Before you push, run `pnpm check`. It runs most of what CI runs --- build,
   lint, and the spec --- so you catch those in seconds instead of waiting for
   the pipeline. The links check, the evidence check, the secrets scan, and the
-  deploy itself only run in CI; run `pnpm dlx linkinator ./dist --silent`
-  locally against a fresh `pnpm build` for the links check without waiting for
-  CI.
+  deploy itself only run in CI; run the links check locally against a fresh
+  `pnpm build` without waiting for CI, mirroring `dist/` under the same
+  `base` subpath GitHub Pages will actually serve it at, since Astro's `base`
+  prefixes every generated asset URL with it:
+  `mkdir -p /tmp/link-check/comp4020-crit4-jaz0502 && cp -r dist/. /tmp/link-check/comp4020-crit4-jaz0502/ && pnpm dlx linkinator comp4020-crit4-jaz0502/index.html --server-root /tmp/link-check --silent`
 - To see what the page actually looks like rather than what you assume it looks
   like, open it in a browser (the `agent-browser` CLI, documented on
   [the course site](https://comp.anu.edu.au/courses/comp4020-agentic-coding-studio/topics/backpressure/#agent-browser-the-rendered-page-as-ground-truth),
