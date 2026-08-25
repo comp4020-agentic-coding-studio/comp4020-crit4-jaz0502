@@ -7,10 +7,11 @@ const CHIME_COUNT = 9;
 // glassy register rather than a low, heavy one.
 const PENTATONIC = [523.25, 587.33, 659.25, 784.0, 880.0, 1046.5, 1174.66, 1318.51];
 
-// How much of the wind's strength turns into torque on each chime. Tuned so a
-// single mouse click's gust is enough to swing a chime past STRIKE_THRESHOLD.
-const FORCE_SCALE = 0.16;
-const STRIKE_THRESHOLD = 0.16; // radians from rest before a chime "strikes"
+// How much of the wind's strength turns into torque on each chime. Tuned so
+// even a gentle, sustained breeze reliably swings a chime past
+// STRIKE_THRESHOLD rather than just leaning up to its edge.
+const FORCE_SCALE = 0.2;
+const STRIKE_THRESHOLD = 0.11; // radians from rest before a chime "strikes"
 const REARM_THRESHOLD = STRIKE_THRESHOLD * 0.4;
 const GUST_IMPULSE = 11;
 const IDLE_MS = 400; // no input for this long and wind starts decaying
